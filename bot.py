@@ -62,7 +62,7 @@ async def on_message(message):
         change_happiness(-1)
         if HAPPINESS == 0:
             await message.channel.send(f'i am so lonely no one cares about me')
-        if HUNGER == 100:
+        if HUNGER == 0:
             await message.channel.send(f'i am going to die please feed me some food')
     await client.process_commands(message)
 
@@ -85,7 +85,7 @@ async def pet(ctx):
 # feed the cat when someone says !feed
 @client.command()
 async def feed(ctx):
-    change_hunger(-20)
+    change_hunger(20)
     print(f'cat has been fed')
     await ctx.send('thank u for feeding me...')
 
@@ -94,7 +94,7 @@ async def feed(ctx):
 @client.command()
 async def play(ctx):
     change_happiness(20)
-    change_hunger(20)
+    change_hunger(-20)
     print(f'cat has been played with')
     await ctx.send('yaaaayyyyy :3')
 
@@ -121,12 +121,12 @@ async def stats(ctx):
 async def commands(ctx):
     await ctx.send('```fix\n'
                    '☆ CAT COMMAND STATION ☆\n'
-                   'KEEP HUNGER UNDER 100 AND HAPPINESS ABOVE 0\n'
+                   'KEEP HUNGER AND HAPPINESS LEVELS ABOVE 0\n'
                    '‣ !stats → check my happiness and hunger levels :3 \n'
                    '‣ !meow  → i meow → -2 happiness\n'
                    '‣ !pet   → pet me → +2 happiness\n'
-                   '‣ !feed  → feed me → -20 hunger \n'
-                   '‣ !play  → play time → +20 happiness +20 hunger\n'
+                   '‣ !feed  → feed me → +20 hunger \n'
+                   '‣ !play  → play time → +20 happiness -20 hunger\n'
                    '‣ !scold → yell at me → -20 happiness```')
 
 # logs out of discord and closes all connections
