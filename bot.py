@@ -58,7 +58,7 @@ async def on_message(message):
     global HAPPINESS
     global HUNGER
     if (not message.author.bot) and (message.content.lower() not in COMMANDS):
-        change_hunger(1)
+        change_hunger(-1)
         change_happiness(-1)
         if HAPPINESS == 0:
             await message.channel.send(f'i am so lonely no one cares about me')
