@@ -168,4 +168,5 @@ def change_hunger(value):
 
 
 client.loop.create_task(cat_status())
+#privated the bot key
 client.run(os.environ['DISCORD_TOKEN'])
