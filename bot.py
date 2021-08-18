@@ -1,15 +1,22 @@
 import discord
 from discord.ext import commands
+from pymongo import MongoClient
 import asyncio
 import random
 import os
+from dotenv import load_dotenv
 
-client = commands.Bot(command_prefix = '!')
-
-# global variables
+client = commands.Bot(command_prefix='!')
 HAPPINESS = 50
 HUNGER = 50
 COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold']
+load_dotenv()
+db_password = os.environ['DB_PASSWORD']
+cluster = MongoClient(f'mongodb+srv://aby:{db_password}@abycluster.zscon.mongodb.net/test?'
+                        f'authSource=admin&replicaSet=atlas-572jpr-shard-0&readPreference=primary'
+                        f'&appname=MongoDB%20Compass&ssl=true')
+db = cluster["UserData"]
+collection = db["UserData"]
 
 # launching bot, bot is ready
 @client.event
