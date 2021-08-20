@@ -11,11 +11,9 @@ from dotenv import load_dotenv
 client = commands.Bot(command_prefix='!')
 HAPPINESS = 50
 HUNGER = 50
-COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold', '!join', '!abandon']
+COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold', '!adopt', '!abandon']
 load_dotenv()
-db_password = os.environ['DB_PASSWORD']
-cluster = MongoClient(f'mongodb+srv://aby:{db_password}@abycluster.zscon.mongodb.net/test?authSource=admin&replicaSet=atlas-572'
-                      f'jpr-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true', ssl_cert_reqs=ssl.CERT_NONE)
+cluster = MongoClient(os.environ['MONGODB'], ssl_cert_reqs=ssl.CERT_NONE)
 db = cluster["UserData"]
 collection = db["UserData"]
 
@@ -61,7 +59,7 @@ async def on_member_remove(member):
 # lowers happiness/hunger as messages are sent
 @client.event
 async def on_message(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS) and (collection.count_documents(query) != 0):
         hunger = change_hunger(-1, ctx.author.id)
         happiness = change_happiness(-1, ctx.author.id)
@@ -74,12 +72,14 @@ async def on_message(ctx):
 
 # user will get their own cat !join
 @client.command()
-async def join(ctx):
+async def adopt(ctx):
     query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
     if collection.count_documents(query) == 0:
         collection.insert_one(query)
         print(f'cat has been added to user {ctx.author}')
         await ctx.send(f'i will love you forever {ctx.message.author.name}')
+    else:
+        await ctx.send('hey man...u got something to say to me?')
 
 
 # meows when someone says !meow
@@ -91,7 +91,7 @@ async def meow(ctx):
         print(f'{ctx.author}\'s cat meows')
         await ctx.send('meow...')
     else:
-        await ctx.send('cats are waiting to be adopted. !adopt')
+        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
 
 # replies with :D when someone says !pet
@@ -103,7 +103,7 @@ async def pet(ctx):
         print(f'{ctx.author}\'s cat has been pet')
         await ctx.send(':3')
     else:
-        await ctx.send('cats are waiting to be adopted. !adopt')
+        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
 
 # feed the cat when someone says !feed
@@ -115,7 +115,7 @@ async def feed(ctx):
         print(f'{ctx.author}\'s cat has been fed')
         await ctx.send('thank u for feeding me...')
     else:
-        await ctx.send('cats are waiting to be adopted. !adopt')
+        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
 
 # play with cat when !play
@@ -128,7 +128,7 @@ async def play(ctx):
         print(f'{ctx.author}\'s cat has been played with')
         await ctx.send(f'yaaaayyyyy :3 i love you {ctx.message.author.name}')
     else:
-        await ctx.send('cats are waiting to be adopted. !adopt')
+        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
 
 # scold cat !scold
@@ -140,7 +140,7 @@ async def scold(ctx):
         print(f'{ctx.message.author.name}\'s cat has been scolded')
         await ctx.send('i am sad u would yell at me like that')
     else:
-        await ctx.send('cats are waiting to be adopted. !adopt')
+        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
 
 # user removed from db
@@ -164,7 +164,7 @@ async def stats(ctx):
                        f'‣ HAPPINESS: {happiness}/100 \n'
                        f'‣ HUNGER: {hunger}/100```')
     else:
-        await ctx.send('cats are waiting to be adopted. !adopt')
+        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
 
 # sends message what commands cat bot can do
