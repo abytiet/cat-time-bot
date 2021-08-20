@@ -61,7 +61,8 @@ async def on_member_remove(member):
 # lowers happiness/hunger as messages are sent
 @client.event
 async def on_message(ctx):
-    if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS):
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS) and collection.count_documents(query) != 0:
         hunger = change_hunger(-1, ctx.author.id)
         happiness = change_happiness(-1, ctx.author.id)
         if happiness == 0:
@@ -84,42 +85,62 @@ async def join(ctx):
 # meows when someone says !meow
 @client.command()
 async def meow(ctx):
-    change_happiness(-2, ctx.author.id)
-    print(f'{ctx.author}\'s cat meows')
-    await ctx.send('meow...')
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if collection.count_documents(query) != 0:
+        change_happiness(-2, ctx.author.id)
+        print(f'{ctx.author}\'s cat meows')
+        await ctx.send('meow...')
+    else:
+        await ctx.send('cats are waiting to be adopted. !adopt')
 
 
 # replies with :D when someone says !pet
 @client.command()
 async def pet(ctx):
-    change_happiness(2, ctx.author.id)
-    print(f'{ctx.author}\'s cat has been pet')
-    await ctx.send(':3')
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if collection.count_documents(query) != 0:
+        change_happiness(2, ctx.author.id)
+        print(f'{ctx.author}\'s cat has been pet')
+        await ctx.send(':3')
+    else:
+        await ctx.send('cats are waiting to be adopted. !adopt')
 
 
 # feed the cat when someone says !feed
 @client.command()
 async def feed(ctx):
-    change_hunger(20, ctx.author.id)
-    print(f'{ctx.author}\'s cat has been fed')
-    await ctx.send('thank u for feeding me...')
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if collection.count_documents(query) != 0:
+        change_hunger(20, ctx.author.id)
+        print(f'{ctx.author}\'s cat has been fed')
+        await ctx.send('thank u for feeding me...')
+    else:
+        await ctx.send('cats are waiting to be adopted. !adopt')
 
 
 # play with cat when !play
 @client.command()
 async def play(ctx):
-    change_happiness(20, ctx.author.id)
-    change_hunger(-20, ctx.author.id)
-    print(f'{ctx.author}\'s cat has been played with')
-    await ctx.send(f'yaaaayyyyy :3 i love you {ctx.message.author.name}')
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if collection.count_documents(query) != 0:
+        change_happiness(20, ctx.author.id)
+        change_hunger(-20, ctx.author.id)
+        print(f'{ctx.author}\'s cat has been played with')
+        await ctx.send(f'yaaaayyyyy :3 i love you {ctx.message.author.name}')
+    else:
+        await ctx.send('cats are waiting to be adopted. !adopt')
 
 
 # scold cat !scold
 @client.command()
 async def scold(ctx):
-    change_happiness(-20, ctx.author.id)
-    print(f'{ctx.message.author.name}\'s cat has been scolded')
-    await ctx.send('i am sad u would yell at me like that')
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if collection.count_documents(query) != 0:
+        change_happiness(-20, ctx.author.id)
+        print(f'{ctx.message.author.name}\'s cat has been scolded')
+        await ctx.send('i am sad u would yell at me like that')
+    else:
+        await ctx.send('cats are waiting to be adopted. !adopt')
 
 
 # user removed from db
@@ -133,13 +154,17 @@ async def abandon(ctx):
 # checks the current cat stats when !stats
 @client.command()
 async def stats(ctx):
-    happiness = get_happiness(ctx.author.id)
-    hunger = get_hunger(ctx.author.id)
-    print(f'{ctx.author.id} stats: {happiness}/100, {hunger}/100')
-    await ctx.send(f'```fix\n'
-                   f'★ CAT STATS ★ \n'
-                   f'‣ HAPPINESS: {happiness}/100 \n'
-                   f'‣ HUNGER: {hunger}/100```')
+    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    if collection.count_documents(query) != 0:
+        happiness = get_happiness(ctx.author.id)
+        hunger = get_hunger(ctx.author.id)
+        print(f'{ctx.author.id} stats: {happiness}/100, {hunger}/100')
+        await ctx.send(f'```fix\n'
+                       f'★ CAT STATS ★ \n'
+                       f'‣ HAPPINESS: {happiness}/100 \n'
+                       f'‣ HUNGER: {hunger}/100```')
+    else:
+        await ctx.send('cats are waiting to be adopted. !adopt')
 
 
 # sends message what commands cat bot can do
@@ -166,7 +191,7 @@ async def logout():
 # background task that sets game status for cat
 async def cat_status():
     await client.wait_until_ready()
-    statuses = ["meowing", "nyaaa", ":3", ":3c", "doing cat things", "!commands"]
+    statuses = ["meowing", "nyaaa", ":3", ":3c", "doing cat things", "!commands", "!adopt me"]
     while not client.is_closed():
         status = random.choice(statuses)
         await client.change_presence(activity=discord.Game(status))
