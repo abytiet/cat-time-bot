@@ -13,7 +13,7 @@ HAPPINESS = 50
 HUNGER = 50
 COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold', '!adopt', '!abandon']
 load_dotenv()
-cluster = MongoClient(os.environ['MONGODB'], ssl_cert_reqs=ssl.CERT_NONE)
+cluster = MongoClient(os.environ['MONGODB'])
 db = cluster["UserData"]
 collection = db["UserData"]
 
