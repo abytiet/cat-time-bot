@@ -62,7 +62,7 @@ async def on_member_remove(member):
 @client.event
 async def on_message(ctx):
     query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
-    if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS) and collection.count_documents(query) != 0:
+    if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS) and (collection.count_documents(query) != 0):
         hunger = change_hunger(-1, ctx.author.id)
         happiness = change_happiness(-1, ctx.author.id)
         if happiness == 0:
