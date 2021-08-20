@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 client = commands.Bot(command_prefix='!')
 HAPPINESS = 50
 HUNGER = 50
-COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold', '!adopt', '!abandon']
+COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold', '!adopt', '!abandon', '!name']
 load_dotenv()
-cluster = MongoClient(os.environ['MONGODB'])
+cluster = MongoClient(os.environ['MONGODB'], ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
 db = cluster["UserData"]
 collection = db["UserData"]
 
@@ -73,23 +73,39 @@ async def on_message(ctx):
 # user will get their own cat !join
 @client.command()
 async def adopt(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) == 0:
+        query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50, "name": "cat"}
         collection.insert_one(query)
         print(f'cat has been added to user {ctx.author}')
         await ctx.send(f'i will love you forever {ctx.message.author.name}')
     else:
-        await ctx.send('hey man...u got something to say to me?')
+        name = get_cat_name(ctx.author.id)
+        await ctx.send(f'**{name}**: hey man...u got something to say to me?')
+
+
+# names the cat
+@client.command()
+async def name(ctx):
+    query = {"_id": ctx.author.id}
+    if collection.count_documents(query) != 0:
+        cat_name = ' '.join(ctx.message.content.split(' ')[1:])
+        new_value = {"name": cat_name}
+        collection.update_one(query, {"$set": new_value})
+        await ctx.send(f'i am {cat_name}')
+    else:
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # meows when someone says !meow
 @client.command()
 async def meow(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(-2, ctx.author.id)
+        name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat meows')
-        await ctx.send('meow...')
+        await ctx.send(f'**{name}**: meow...')
     else:
         await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
@@ -97,11 +113,12 @@ async def meow(ctx):
 # replies with :D when someone says !pet
 @client.command()
 async def pet(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(2, ctx.author.id)
+        name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat has been pet')
-        await ctx.send(':3')
+        await ctx.send(f'**{name}**: :3')
     else:
         await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
@@ -109,11 +126,12 @@ async def pet(ctx):
 # feed the cat when someone says !feed
 @client.command()
 async def feed(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_hunger(20, ctx.author.id)
+        cat_name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat has been fed')
-        await ctx.send('thank u for feeding me...')
+        await ctx.send(f'**{cat_name}**: thank u for feeding me...')
     else:
         await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
@@ -121,12 +139,13 @@ async def feed(ctx):
 # play with cat when !play
 @client.command()
 async def play(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(20, ctx.author.id)
         change_hunger(-20, ctx.author.id)
+        cat_name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat has been played with')
-        await ctx.send(f'yaaaayyyyy :3 i love you {ctx.message.author.name}')
+        await ctx.send(f'**{cat_name}**: yaaaayyyyy :3 i love you {ctx.message.author.name}')
     else:
         await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
@@ -134,11 +153,12 @@ async def play(ctx):
 # scold cat !scold
 @client.command()
 async def scold(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(-20, ctx.author.id)
+        cat_name = get_cat_name(ctx.author.id)
         print(f'{ctx.message.author.name}\'s cat has been scolded')
-        await ctx.send('i am sad u would yell at me like that')
+        await ctx.send(f'**{cat_name}**: i am sad u would yell at me like that')
     else:
         await ctx.send('`cats are waiting to be adopted. \n!adopt`')
 
@@ -148,13 +168,14 @@ async def scold(ctx):
 async def abandon(ctx):
     query = {"_id": ctx.author.id}
     collection.delete_one(query)
-    await ctx.send(f'i love u forever, {ctx.message.author.name}. goodbye.')
+    cat_name = get_cat_name(ctx.author.id)
+    await ctx.send(f'**{cat_name}**: i\'ll love u forever, {ctx.message.author.name}. goodbye.')
 
 
 # checks the current cat stats when !stats
 @client.command()
 async def stats(ctx):
-    query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50}
+    query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         happiness = get_happiness(ctx.author.id)
         hunger = get_hunger(ctx.author.id)
@@ -181,6 +202,7 @@ async def commands(ctx):
                    '‣ !play    → play time → +20 happiness -20 hunger\n'
                    '‣ !scold   → yell at me → -20 happiness\n'
                    '‣ !abandon → leave ur cat. for good. :(```')
+
 
 # logs out of discord and closes all connections
 @client.command()
@@ -234,6 +256,12 @@ def get_happiness(user_id):
 def get_hunger(user_id):
     query = {"_id": user_id}
     return collection.find_one(query)['hunger']
+
+
+# get a user's cat name
+def get_cat_name(user_id):
+    query = {"_id": user_id}
+    return collection.find_one(query)['name']
 
 
 client.loop.create_task(cat_status())
