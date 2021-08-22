@@ -63,10 +63,11 @@ async def on_message(ctx):
     if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS) and (collection.count_documents(query) != 0):
         hunger = change_hunger(-1, ctx.author.id)
         happiness = change_happiness(-1, ctx.author.id)
+        cat_name = get_cat_name(ctx.author.id)
         if happiness == 0:
-            await ctx.channel.send('i am so lonely no one cares about me')
+            await ctx.channel.send(f'**{cat_name}**: i am so lonely no one cares about me')
         if hunger == 0:
-            await ctx.channel.send('i am going to die please feed me some food')
+            await ctx.channel.send(f'**{cat_name}**: i am going to die please feed me some food')
     await client.process_commands(ctx)
 
 
@@ -80,8 +81,8 @@ async def adopt(ctx):
         print(f'cat has been added to user {ctx.author}')
         await ctx.send(f'i will love you forever {ctx.message.author.name}')
     else:
-        name = get_cat_name(ctx.author.id)
-        await ctx.send(f'**{name}**: hey man...u got something to say to me?')
+        cat_name = get_cat_name(ctx.author.id)
+        await ctx.send(f'**{cat_name}**: am i not enough for you?')
 
 
 # names the cat
@@ -90,9 +91,12 @@ async def name(ctx):
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         cat_name = ' '.join(ctx.message.content.split(' ')[1:])
-        new_value = {"name": cat_name}
-        collection.update_one(query, {"$set": new_value})
-        await ctx.send(f'i am {cat_name}')
+        if cat_name == '':
+            await ctx.send('i need a name! please include it after the !name command')
+        else:
+            new_value = {"name": cat_name}
+            collection.update_one(query, {"$set": new_value})
+            await ctx.send(f'i am {cat_name}')
     else:
         await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
@@ -179,9 +183,10 @@ async def stats(ctx):
     if collection.count_documents(query) != 0:
         happiness = get_happiness(ctx.author.id)
         hunger = get_hunger(ctx.author.id)
+        cat_name = get_cat_name(ctx.author.id).upper()
         print(f'{ctx.author.id} stats: {happiness}/100, {hunger}/100')
         await ctx.send(f'```fix\n'
-                       f'★ CAT STATS ★ \n'
+                       f'★ {cat_name}\'s STATS ★ \n'
                        f'‣ HAPPINESS: {happiness}/100 \n'
                        f'‣ HUNGER: {hunger}/100```')
     else:
@@ -194,14 +199,15 @@ async def commands(ctx):
     await ctx.send('```fix\n'
                    '☆ CAT COMMAND STATION ☆\n'
                    'KEEP HUNGER AND HAPPINESS LEVELS ABOVE 0\n'
-                   '‣ !adopt   → own a cat!\n'
+                   '‣ !adopt   → adopt me!\n'
+                   '‣ !name    → name me'
                    '‣ !stats   → check my happiness and hunger levels :3 \n'
                    '‣ !meow    → i meow → -2 happiness\n'
                    '‣ !pet     → pet me → +2 happiness\n'
                    '‣ !feed    → feed me → +20 hunger \n'
                    '‣ !play    → play time → +20 happiness -20 hunger\n'
                    '‣ !scold   → yell at me → -20 happiness\n'
-                   '‣ !abandon → leave ur cat. for good. :(```')
+                   '‣ !abandon → leave me. for good. :(```')
 
 
 # logs out of discord and closes all connections
