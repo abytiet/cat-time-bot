@@ -1,5 +1,4 @@
 import ssl
-
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
@@ -8,10 +7,10 @@ import random
 import os
 from dotenv import load_dotenv
 
-client = commands.Bot(command_prefix='!')
+client = commands.Bot(command_prefix='~')
 HAPPINESS = 50
 HUNGER = 50
-COMMANDS = ['!commands', '!pet', '!feed', '!meow', '!stats', '!play', '!scold', '!adopt', '!abandon', '!name']
+COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name']
 load_dotenv()
 cluster = MongoClient(os.environ['MONGODB'], ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
 db = cluster["UserData"]
@@ -30,7 +29,7 @@ async def on_guild_join(guild):
     print(f'{client} has joined the server.')
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages:
-            await channel.send('meow i am a cat meow !commands')
+            await channel.send('meow i am a cat meow ~commands')
         break
 
 
@@ -65,9 +64,9 @@ async def on_message(ctx):
         happiness = change_happiness(-1, ctx.author.id)
         cat_name = get_cat_name(ctx.author.id)
         if happiness == 0:
-            await ctx.channel.send(f'**{cat_name}**: i am so lonely no one cares about me')
+            await ctx.channel.send(f'**{cat_name}**: {ctx.author.mention} i am so lonely no one cares about me')
         if hunger == 0:
-            await ctx.channel.send(f'**{cat_name}**: i am going to die please feed me some food')
+            await ctx.channel.send(f'**{cat_name}**: {ctx.author.mention} i am going to die please feed me some food')
     await client.process_commands(ctx)
 
 
@@ -79,10 +78,10 @@ async def adopt(ctx):
         query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50, "name": "cat"}
         collection.insert_one(query)
         print(f'cat has been added to user {ctx.author}')
-        await ctx.send(f'i will love you forever {ctx.message.author.name}')
+        await ctx.send(f'i will love you forever {ctx.author.mention}')
     else:
         cat_name = get_cat_name(ctx.author.id)
-        await ctx.send(f'**{cat_name}**: meow. what about me???')
+        await ctx.send(f'**{cat_name}**: meow. {ctx.author.mention} wtf!!! u need to take care of me first.')
 
 
 # names the cat
@@ -98,7 +97,7 @@ async def name(ctx):
             collection.update_one(query, {"$set": new_value})
             await ctx.send(f'i am {cat_name}')
     else:
-        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # meows when someone says !meow
@@ -111,7 +110,7 @@ async def meow(ctx):
         print(f'{ctx.author}\'s cat meows')
         await ctx.send(f'**{name}**: meow...')
     else:
-        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # replies with :D when someone says !pet
@@ -124,7 +123,7 @@ async def pet(ctx):
         print(f'{ctx.author}\'s cat has been pet')
         await ctx.send(f'**{name}**: :3')
     else:
-        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # feed the cat when someone says !feed
@@ -135,9 +134,9 @@ async def feed(ctx):
         change_hunger(20, ctx.author.id)
         cat_name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat has been fed')
-        await ctx.send(f'**{cat_name}**: thank u for feeding me...')
+        await ctx.send(f'**{cat_name}**: thank u for feeding me {ctx.author.mention}...')
     else:
-        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # play with cat when !play
@@ -149,9 +148,9 @@ async def play(ctx):
         change_hunger(-20, ctx.author.id)
         cat_name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat has been played with')
-        await ctx.send(f'**{cat_name}**: yaaaayyyyy :3 i love you {ctx.message.author.name}')
+        await ctx.send(f'**{cat_name}**: yaaaayyyyy :3 i love you {ctx.author.mention}')
     else:
-        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # scold cat !scold
@@ -164,16 +163,21 @@ async def scold(ctx):
         print(f'{ctx.message.author.name}\'s cat has been scolded')
         await ctx.send(f'**{cat_name}**: i am sad u would yell at me like that')
     else:
-        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # user removed from db
 @client.command()
 async def abandon(ctx):
     query = {"_id": ctx.author.id}
-    cat_name = get_cat_name(ctx.author.id)
-    collection.delete_one(query)
-    await ctx.send(f'**{cat_name}**: i\'ll love u forever, {ctx.message.author.name}. goodbye.')
+    if collection.count_documents(query) != 0:
+        cat_name = get_cat_name(ctx.author.id)
+        collection.delete_one(query)
+        print(f'{ctx.message.author.name}\'s cat has been abandoned')
+        await ctx.send(f'**{cat_name}**: i\'ll love u forever, {ctx.author.mention}. goodbye.')
+    else:
+        await ctx.send(f'don\'t even think of adopting me if ur just gonna leave me {ctx.author.mention}! '
+                       f'the pain will be too much for me to handle... :(')
 
 
 # checks the current cat stats when !stats
@@ -184,13 +188,13 @@ async def stats(ctx):
         happiness = get_happiness(ctx.author.id)
         hunger = get_hunger(ctx.author.id)
         cat_name = get_cat_name(ctx.author.id).upper()
-        print(f'{ctx.author.id} stats: {happiness}/100, {hunger}/100')
-        await ctx.send(f'```fix\n'
-                       f'★ {cat_name}\'s STATS ★ \n'
+        print(f'{ctx.author.id} stats: {happiness}/100 happiness, {hunger}/100 hunger')
+        await ctx.send(f'{ctx.author.mention}\n```fix\n'
+                       f'★ {cat_name}\'S STATS ★ \n'
                        f'‣ HAPPINESS: {happiness}/100 \n'
                        f'‣ HUNGER: {hunger}/100```')
     else:
-        await ctx.send('`cats are waiting to be adopted. \n!adopt`')
+        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
 
 
 # sends message what commands cat bot can do
@@ -199,15 +203,15 @@ async def commands(ctx):
     await ctx.send('```fix\n'
                    '☆ CAT COMMAND STATION ☆\n'
                    'KEEP HUNGER AND HAPPINESS LEVELS ABOVE 0\n'
-                   '‣ !adopt   → adopt me\n'
-                   '‣ !name    → name me \n'
-                   '‣ !stats   → check my happiness and hunger levels :3 \n'
-                   '‣ !meow    → i meow → -2 happiness\n'
-                   '‣ !pet     → pet me → +2 happiness\n'
-                   '‣ !feed    → feed me → +20 hunger \n'
-                   '‣ !play    → play time → +20 happiness -20 hunger\n'
-                   '‣ !scold   → yell at me → -20 happiness\n'
-                   '‣ !abandon → leave me. for good. :(```')
+                   '‣ ~adopt   → adopt me\n'
+                   '‣ ~name    → name me \n'
+                   '‣ ~stats   → check my happiness and hunger levels :3 \n'
+                   '‣ ~meow    → i meow → -2 happiness\n'
+                   '‣ ~pet     → pet me → +2 happiness\n'
+                   '‣ ~feed    → feed me → +20 hunger \n'
+                   '‣ ~play    → play time → +20 happiness -20 hunger\n'
+                   '‣ ~scold   → yell at me → -20 happiness\n'
+                   '‣ ~abandon → leave me. for good. :(```')
 
 
 # logs out of discord and closes all connections
