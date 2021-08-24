@@ -97,7 +97,7 @@ async def name(ctx):
             collection.update_one(query, {"$set": new_value})
             await ctx.send(f'i am {cat_name}')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # meows when someone says !meow
@@ -110,7 +110,7 @@ async def meow(ctx):
         print(f'{ctx.author}\'s cat meows')
         await ctx.send(f'**{name}**: meow...')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # replies with :D when someone says !pet
@@ -123,7 +123,7 @@ async def pet(ctx):
         print(f'{ctx.author}\'s cat has been pet')
         await ctx.send(f'**{name}**: :3')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # feed the cat when someone says !feed
@@ -136,7 +136,7 @@ async def feed(ctx):
         print(f'{ctx.author}\'s cat has been fed')
         await ctx.send(f'**{cat_name}**: thank u for feeding me {ctx.author.mention}...')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # play with cat when !play
@@ -148,9 +148,9 @@ async def play(ctx):
         change_hunger(-20, ctx.author.id)
         cat_name = get_cat_name(ctx.author.id)
         print(f'{ctx.author}\'s cat has been played with')
-        await ctx.send(f'**{cat_name}**: yaaaayyyyy :3 i love you {ctx.author.mention}')
+        await ctx.send(f'**{cat_name}**: yaaaayyyyy :3')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # scold cat !scold
@@ -163,7 +163,7 @@ async def scold(ctx):
         print(f'{ctx.message.author.name}\'s cat has been scolded')
         await ctx.send(f'**{cat_name}**: i am sad u would yell at me like that')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # user removed from db
@@ -194,7 +194,7 @@ async def stats(ctx):
                        f'‣ HAPPINESS: {happiness}/100 \n'
                        f'‣ HUNGER: {hunger}/100```')
     else:
-        await ctx.send(f'```{ctx.author.mention} cats are waiting to be adopted. \n!adopt```')
+        await ctx.send('```cats are waiting to be adopted. \n!adopt```')
 
 
 # sends message what commands cat bot can do
