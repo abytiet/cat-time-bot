@@ -82,7 +82,7 @@ async def adopt(ctx):
         await ctx.send(f'i will love you forever {ctx.message.author.name}')
     else:
         cat_name = get_cat_name(ctx.author.id)
-        await ctx.send(f'**{cat_name}**: am i not enough for you?')
+        await ctx.send(f'**{cat_name}**: meow. what about me???')
 
 
 # names the cat
@@ -171,8 +171,8 @@ async def scold(ctx):
 @client.command()
 async def abandon(ctx):
     query = {"_id": ctx.author.id}
-    collection.delete_one(query)
     cat_name = get_cat_name(ctx.author.id)
+    collection.delete_one(query)
     await ctx.send(f'**{cat_name}**: i\'ll love u forever, {ctx.message.author.name}. goodbye.')
 
 
