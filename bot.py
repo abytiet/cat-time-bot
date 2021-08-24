@@ -223,7 +223,7 @@ async def logout():
 # background task that sets game status for cat
 async def cat_status():
     await client.wait_until_ready()
-    statuses = ["meowing", "nyaaa", ":3", ":3c", "doing cat things", "!commands", "!adopt me"]
+    statuses = ["meowing", "nyaaa", ":3", ":3c", "doing cat things", "~commands", "~adopt me"]
     while not client.is_closed():
         status = random.choice(statuses)
         await client.change_presence(activity=discord.Game(status))
