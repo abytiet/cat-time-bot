@@ -1,6 +1,7 @@
 import ssl
 import discord
 from discord.ext import commands
+from discord.utils import get
 from pymongo import MongoClient
 import asyncio
 import random
@@ -9,9 +10,9 @@ from dotenv import load_dotenv
 
 intents = discord.Intents(members=True, messages=True)
 client = commands.Bot(command_prefix='~', intents=intents)
-HAPPINESS = 50
-HUNGER = 50
+
 COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name']
+
 load_dotenv()
 cluster = MongoClient(os.environ['MONGODB'], ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
 db = cluster["UserData"]
@@ -21,13 +22,20 @@ collection = db["UserData"]
 # launching bot, bot is ready
 @client.event
 async def on_ready():
+    for guild in client.guilds:
+        if get(guild.roles, name="CAT PROTECTION SERVICES"):
+            print("CPS role exists")
+        else:
+            await guild.create_role(name="CAT PROTECTION SERVICES")
     print('CAT TIME IS READY!')
 
 
 # when bot joins, it sends its first message
+# bot also creates Cat Protection Services admin role
 @client.event
 async def on_guild_join(guild):
     print(f'{client} has joined the server.')
+    await guild.create_role(name="Cat Protection Services")
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages:
             await channel.send('meow i am a cat meow ~commands')
