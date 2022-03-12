@@ -7,7 +7,8 @@ import random
 import os
 from dotenv import load_dotenv
 
-client = commands.Bot(command_prefix='~')
+intents = discord.Intents(members=True, messages=True)
+client = commands.Bot(command_prefix='~', intents=intents)
 HAPPINESS = 50
 HUNGER = 50
 COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name']
