@@ -8,10 +8,10 @@ import random
 import os
 from dotenv import load_dotenv
 
-intents = discord.Intents(members=True, messages=True)
+intents = discord.Intents(members=True, messages=True, guilds=True)
 client = commands.Bot(command_prefix='~', intents=intents)
 
-COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name']
+COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name', '~cps']
 
 load_dotenv()
 cluster = MongoClient(os.environ['MONGODB'], ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
@@ -22,20 +22,13 @@ collection = db["UserData"]
 # launching bot, bot is ready
 @client.event
 async def on_ready():
-    for guild in client.guilds:
-        if get(guild.roles, name="CAT PROTECTION SERVICES"):
-            print("CPS role exists")
-        else:
-            await guild.create_role(name="CAT PROTECTION SERVICES")
     print('CAT TIME IS READY!')
 
 
 # when bot joins, it sends its first message
-# bot also creates Cat Protection Services admin role
 @client.event
 async def on_guild_join(guild):
     print(f'{client} has joined the server.')
-    await guild.create_role(name="Cat Protection Services")
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages:
             await channel.send('meow i am a cat meow ~commands')
@@ -162,7 +155,7 @@ async def play(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# scold cat !scold
+# scold cat ~scold
 @client.command()
 async def scold(ctx):
     query = {"_id": ctx.author.id}
@@ -188,8 +181,17 @@ async def abandon(ctx):
         await ctx.send(f'don\'t even think of adopting me if ur just gonna leave me {ctx.author.mention}! '
                        f'the pain will be too much for me to handle... :(')
 
+# creates CAT PROTECTION SERVICES role
+@client.command()
+async def cps(ctx):
+    if get(ctx.guild.roles, name="CAT PROTECTION SERVICES"):
+        await ctx.send("Cat Protection Services are already called.")
+    else:
+        await ctx.guild.create_role(name="CAT PROTECTION SERVICES")
+        await ctx.send("PROTECT OUR FELINE FRIENDS BY JOINING CAT PROTECTION SERVICES. "
+                       "SAVE CATS FROM THEIR BAD OWNERS!")
 
-# checks the current cat stats when !stats
+# checks the current cat stats when ~stats
 @client.command()
 async def stats(ctx):
     query = {"_id": ctx.author.id}
@@ -220,7 +222,8 @@ async def commands(ctx):
                    '‣ ~feed    → feed me → +20 hunger \n'
                    '‣ ~play    → play time → +20 happiness -20 hunger\n'
                    '‣ ~scold   → yell at me → -20 happiness\n'
-                   '‣ ~abandon → leave me. for good. :(```')
+                   '‣ ~abandon → leave me. for good. :(\n'
+                   '‣ ~cps     → summon cat protection services```')
 
 
 # logs out of discord and closes all connections
