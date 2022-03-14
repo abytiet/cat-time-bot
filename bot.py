@@ -181,6 +181,24 @@ async def abandon(ctx):
         await ctx.send(f'don\'t even think of adopting me if ur just gonna leave me {ctx.author.mention}! '
                        f'the pain will be too much for me to handle... :(')
 
+# remove a user's cat if the author is in CPS
+@client.command()
+@commands.has_role("CAT PROTECTION SERVICES")
+async def rehome(ctx):
+    cmd = ctx.message.content.split(" ")
+    if len(cmd) != 2 or len(ctx.message.mentions) != 1:
+        await ctx.send("Incorrect arguments provided...meow")
+    else:
+        mention = ctx.message.mentions[0]
+        query = {"_id": mention.id}
+        if collection.count_documents(query) != 0:
+            collection.delete_one(query)
+            print(f'{mention}\'s cat has been re-homed.')
+            await ctx.send(f'{mention}\'s cat has been re-homed.')
+        else:
+            await ctx.send("This user does not own a cat.")
+
+
 # creates CAT PROTECTION SERVICES role
 @client.command()
 async def cps(ctx):
@@ -223,7 +241,8 @@ async def commands(ctx):
                    '‣ ~play    → play time → +20 happiness -20 hunger\n'
                    '‣ ~scold   → yell at me → -20 happiness\n'
                    '‣ ~abandon → leave me. for good. :(\n'
-                   '‣ ~cps     → summon cat protection services```')
+                   '‣ ~cps     → summon cat protection services\n'
+                   '‣ ~rehome  → CPS role only! include mention of a user to rehome their cat```')
 
 
 # logs out of discord and closes all connections
