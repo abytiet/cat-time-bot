@@ -182,8 +182,8 @@ async def abandon(ctx):
                        f'the pain will be too much for me to handle... :(')
 
 # remove a user's cat if the author is in CPS
-@client.command()
-@commands.has_role("CAT PROTECTION SERVICES")
+@client.command(name="rehome")
+@commands.has_role('CAT PROTECTION SERVICES')
 async def rehome(ctx):
     cmd = ctx.message.content.split(" ")
     if len(cmd) != 2 or len(ctx.message.mentions) != 1:
@@ -193,11 +193,14 @@ async def rehome(ctx):
         query = {"_id": mention.id}
         if collection.count_documents(query) != 0:
             collection.delete_one(query)
-            print(f'{mention}\'s cat has been re-homed.')
-            await ctx.send(f'{mention}\'s cat has been re-homed.')
+            print(f'{mention} \'s cat has been re-homed.')
+            await ctx.send(f'{mention.mention}\'s cat has been re-homed.')
         else:
             await ctx.send("This user does not own a cat.")
 
+@rehome.error
+async def rehome_error(ctx, error):
+    await ctx.send("CAT PROTECTION SERVICES role is a requirement to use this command!")
 
 # creates CAT PROTECTION SERVICES role
 @client.command()
@@ -242,7 +245,7 @@ async def commands(ctx):
                    '‣ ~scold   → yell at me → -20 happiness\n'
                    '‣ ~abandon → leave me. for good. :(\n'
                    '‣ ~cps     → summon cat protection services\n'
-                   '‣ ~rehome  → CPS role only! include mention of a user to rehome their cat```')
+                   '‣ ~rehome [mentioned user] → CPS role only! include mention of a user to rehome their cat```')
 
 
 # logs out of discord and closes all connections
