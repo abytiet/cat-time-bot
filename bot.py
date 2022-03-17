@@ -7,11 +7,13 @@ import asyncio
 import random
 import os
 from dotenv import load_dotenv
+import requests
 
 intents = discord.Intents(members=True, messages=True, guilds=True)
 client = commands.Bot(command_prefix='~', intents=intents)
 
-COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name', '~cps']
+COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name', '~cps',
+            '~fact', '~rehome']
 
 load_dotenv()
 cluster = MongoClient(os.environ['MONGODB'], ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
@@ -212,6 +214,13 @@ async def cps(ctx):
         await ctx.send("PROTECT OUR FELINE FRIENDS BY JOINING CAT PROTECTION SERVICES. "
                        "SAVE CATS FROM THEIR BAD OWNERS!")
 
+# use Cat Facts API to get random cat facts
+@client.command()
+async def fact(ctx):
+    response = requests.get("https://cat-fact.herokuapp.com/facts/random?animal_type=cat")
+    cat_fact = response.json()["text"]
+    await ctx.send(cat_fact + " :3")
+
 # checks the current cat stats when ~stats
 @client.command()
 async def stats(ctx):
@@ -243,6 +252,7 @@ async def commands(ctx):
                    '‣ ~feed    → feed me → +20 hunger \n'
                    '‣ ~play    → play time → +20 happiness -20 hunger\n'
                    '‣ ~scold   → yell at me → -20 happiness\n'
+                   '‣ ~fact   → get a random cat fact'
                    '‣ ~abandon → leave me. for good. :(\n'
                    '‣ ~cps     → summon cat protection services\n'
                    '‣ ~rehome [mentioned user] → CPS role only! include mention of a user to rehome their cat```')
