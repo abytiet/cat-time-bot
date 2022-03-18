@@ -217,9 +217,15 @@ async def cps(ctx):
 # use Cat Facts API to get random cat facts
 @client.command()
 async def fact(ctx):
-    response = requests.get("https://cat-fact.herokuapp.com/facts/random?animal_type=cat")
-    cat_fact = response.json()["text"]
-    await ctx.send(cat_fact + " :3")
+    query = {"_id": ctx.author.id}
+    if collection.count_documents(query) != 0:
+        cat_name = get_cat_name(ctx.author.id)
+        response = requests.get("https://cat-fact.herokuapp.com/facts/random?animal_type=cat")
+        cat_fact = response.json()["text"]
+        await ctx.send(f'**{cat_name}**: you knyow i heard...```' + cat_fact + '```')
+    else:
+        await ctx.send('```cats are waiting to be adopted. \n~adopt```')
+
 
 # checks the current cat stats when ~stats
 @client.command()
