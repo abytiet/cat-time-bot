@@ -1,3 +1,7 @@
+"""
+Cat Bot by Aby Tiet
+"""
+
 import ssl
 import discord
 from discord.ext import commands
@@ -5,31 +9,33 @@ from discord.utils import get
 from pymongo import MongoClient
 import asyncio
 import random
-import os
 from dotenv import load_dotenv
 import requests
+import constants as cons
 
 intents = discord.Intents(members=True, messages=True, guilds=True)
 client = commands.Bot(command_prefix='~', intents=intents)
 
-COMMANDS = ['~commands', '~pet', '~feed', '~meow', '~stats', '~play', '~scold', '~adopt', '~abandon', '~name', '~cps',
-            '~fact', '~rehome']
-
 load_dotenv()
-cluster = MongoClient(os.environ['MONGODB'], ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
+cluster = MongoClient(cons.MONGODB_TOKEN, ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
 db = cluster["UserData"]
 collection = db["UserData"]
 
 
-# launching bot, bot is ready
 @client.event
 async def on_ready():
+    """
+    Print on bot ready
+    """
     print('CAT TIME IS READY!')
 
 
-# when bot joins, it sends its first message
 @client.event
 async def on_guild_join(guild):
+    """
+    Send message in server on bot join
+    :param guild: Discord server
+    """
     print(f'{client} has joined the server.')
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages:
@@ -37,9 +43,12 @@ async def on_guild_join(guild):
         break
 
 
-# person has joined the server
 @client.event
 async def on_member_join(member):
+    """
+    Send a message when a user joins the server
+    :param member: User who joined
+    """
     print(f'{member} has joined a server')
     channel = member.guild.system_channel
     if channel is not None:
@@ -48,9 +57,12 @@ async def on_member_join(member):
         await channel.send(f'welcome {ment} :3c!')
 
 
-# person has been removed/left the server
 @client.event
 async def on_member_remove(member):
+    """
+    Send a message when a user leaves the server
+    :param member: User who left
+    """
     print(f'{member} has left a server.')
     channel = member.guild.system_channel
     if channel is not None:
@@ -59,11 +71,14 @@ async def on_member_remove(member):
         await channel.send(f'goodbye {ment} :3c...')
 
 
-# lowers happiness/hunger as messages are sent
 @client.event
 async def on_message(ctx):
+    """
+    Lowers happiness and hunger levels by 1 if user owns a cat and not using a command
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
-    if (not ctx.author.bot) and (ctx.content.lower() not in COMMANDS) and (collection.count_documents(query) != 0):
+    if (not ctx.author.bot) and (ctx.content.lower() not in cons.COMMANDS) and (collection.count_documents(query) != 0):
         hunger = change_hunger(-1, ctx.author.id)
         happiness = change_happiness(-1, ctx.author.id)
         cat_name = get_cat_name(ctx.author.id)
@@ -74,9 +89,13 @@ async def on_message(ctx):
     await client.process_commands(ctx)
 
 
-# user will get their own cat !join
 @client.command()
 async def adopt(ctx):
+    """
+    Add user to DB on ~join command
+    Message sent if user already owns a cat
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) == 0:
         query = {"_id": ctx.author.id, "happiness": 100, "hunger": 50, "name": "cat"}
@@ -88,9 +107,12 @@ async def adopt(ctx):
         await ctx.send(f'**{cat_name}**: meow. {ctx.author.mention} wtf!!! u need to take care of me first.')
 
 
-# names the cat
 @client.command()
 async def name(ctx):
+    """
+    Change the name of the user's cat
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         cat_name = ' '.join(ctx.message.content.split(' ')[1:])
@@ -104,9 +126,12 @@ async def name(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# meows when someone says !meow
 @client.command()
 async def meow(ctx):
+    """
+    Cat sends meow message on ~meow command, lowers happiness level by 2
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(-2, ctx.author.id)
@@ -117,9 +142,12 @@ async def meow(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# replies with :D when someone says !pet
 @client.command()
 async def pet(ctx):
+    """
+    Cat sends :3 message on ~pet, raises happiness level by 2
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(2, ctx.author.id)
@@ -130,9 +158,12 @@ async def pet(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# feed the cat when someone says !feed
 @client.command()
 async def feed(ctx):
+    """
+    Feeds cat on ~feed command, raises hunger level
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_hunger(20, ctx.author.id)
@@ -143,9 +174,12 @@ async def feed(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# play with cat when !play
 @client.command()
 async def play(ctx):
+    """
+    Plays with cat on ~play command, raises happiness level but lowers hunger level
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(20, ctx.author.id)
@@ -157,9 +191,12 @@ async def play(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# scold cat ~scold
 @client.command()
 async def scold(ctx):
+    """
+    Lower happiness level of cat on ~scold command
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         change_happiness(-20, ctx.author.id)
@@ -170,9 +207,12 @@ async def scold(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# user removed from db
 @client.command()
 async def abandon(ctx):
+    """
+    Remove a cat from the user
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         cat_name = get_cat_name(ctx.author.id)
@@ -183,11 +223,15 @@ async def abandon(ctx):
         await ctx.send(f'don\'t even think of adopting me if ur just gonna leave me {ctx.author.mention}! '
                        f'the pain will be too much for me to handle... :(')
 
-# remove a user's cat if the author is in CPS
 @client.command(name="rehome")
 @commands.has_role('CAT PROTECTION SERVICES')
 async def rehome(ctx):
+    """
+    Remove a user's cat if the other has CPS role and owns a cat.
+    :param ctx: Context of command
+    """
     cmd = ctx.message.content.split(" ")
+    # Incorrect arguments or did not mention a single user
     if len(cmd) != 2 or len(ctx.message.mentions) != 1:
         await ctx.send("Incorrect arguments provided...meow")
     else:
@@ -202,11 +246,20 @@ async def rehome(ctx):
 
 @rehome.error
 async def rehome_error(ctx, error):
+    """
+    Sends error message when someone tries to use a CAT PROTECTION SERVICES restricted command
+    :param ctx: Context of command
+    :param error: Error
+    """
     await ctx.send("CAT PROTECTION SERVICES role is a requirement to use this command!")
 
-# creates CAT PROTECTION SERVICES role
 @client.command()
 async def cps(ctx):
+    """
+    Creates CAT PROTECTION SERVICES role in Discord server
+    If it exists, message is sent to notify that role exists
+    :param ctx: Context of command
+    """
     if get(ctx.guild.roles, name="CAT PROTECTION SERVICES"):
         await ctx.send("Cat Protection Services are already called.")
     else:
@@ -214,22 +267,29 @@ async def cps(ctx):
         await ctx.send("PROTECT OUR FELINE FRIENDS BY JOINING CAT PROTECTION SERVICES. "
                        "SAVE CATS FROM THEIR BAD OWNERS!")
 
-# use Cat Facts API to get random cat facts
 @client.command()
 async def fact(ctx):
+    """
+    Using Cat Facts API, get a random cat fact
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         cat_name = get_cat_name(ctx.author.id)
         response = requests.get("https://cat-fact.herokuapp.com/facts/random?animal_type=cat")
         cat_fact = response.json()["text"]
         await ctx.send(f'**{cat_name}**: you knyow i heard...```' + cat_fact + '```')
+    # Command only works if you have a cat adopted
     else:
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# checks the current cat stats when ~stats
 @client.command()
 async def stats(ctx):
+    """
+    Get current happiness and hunger levels of cats on ~stats command
+    :param ctx: Context of command
+    """
     query = {"_id": ctx.author.id}
     if collection.count_documents(query) != 0:
         happiness = get_happiness(ctx.author.id)
@@ -244,9 +304,12 @@ async def stats(ctx):
         await ctx.send('```cats are waiting to be adopted. \n~adopt```')
 
 
-# sends message what commands cat bot can do
 @client.command()
 async def commands(ctx):
+    """
+    Send message on usage for Cat Bot
+    :param ctx: Context of command
+    """
     await ctx.send('```fix\n'
                    '☆ CAT COMMAND STATION ☆\n'
                    'KEEP HUNGER AND HAPPINESS LEVELS ABOVE 0\n'
@@ -264,24 +327,34 @@ async def commands(ctx):
                    '‣ ~rehome [mentioned user] → CPS role only! include mention of a user to rehome their cat```')
 
 
-# logs out of discord and closes all connections
 @client.command()
 async def logout():
+    """
+    Logs out of Discord and closes all connections
+    """
     await client.logout()
 
 
-# background task that sets game status for cat
 async def cat_status():
+    """
+    Background task that sets game status for Cat Bot
+    Changes every 30 seconds
+    """
     await client.wait_until_ready()
-    statuses = ["meowing", "nyaaa", ":3", ":3c", "doing cat things", "~commands", "~adopt me"]
+    statuses = cons.STATUSES
     while not client.is_closed():
         status = random.choice(statuses)
         await client.change_presence(activity=discord.Game(status))
         await asyncio.sleep(30)
 
 
-# change happiness by given int value
 def change_happiness(value, user_id):
+    """
+    Change happiness level of cat by given value
+    :param value: Amount to change happiness
+    :param user_id: User ID to change cat happiness level
+    :return: Happiness level of cat after changing
+    """
     happiness = get_happiness(user_id)
     if (happiness + value) < 0:
         happiness = 0
@@ -293,8 +366,13 @@ def change_happiness(value, user_id):
     return happiness
 
 
-# change hunger by given int value
 def change_hunger(value, user_id):
+    """
+    Change hunger level of cat by given value
+    :param value: Amount to change hunger
+    :param user_id: User ID to change cat hunger level
+    :return: Hunger level of cat after changing
+    """
     hunger = get_hunger(user_id)
     if (hunger + value) < 0:
         hunger = 0
@@ -306,24 +384,36 @@ def change_hunger(value, user_id):
     return hunger
 
 
-# get a user's cat happiness
 def get_happiness(user_id):
+    """
+    Get happiness level of a user's cat
+    :param user_id: User ID to get happiness level from
+    :return: Cat happiness level (int)
+    """
     query = {"_id": user_id}
     return collection.find_one(query)['happiness']
 
 
-# get a user's cat hunger
 def get_hunger(user_id):
+    """
+    Get hunger level of a user's cat
+    :param user_id: User ID to get hunger level from
+    :return: Cat hunger level (int)
+    """
     query = {"_id": user_id}
     return collection.find_one(query)['hunger']
 
 
-# get a user's cat name
 def get_cat_name(user_id):
+    """
+    Get name of user's cat
+    :param user_id: User ID to get cat from
+    :return: Name of cat
+    """
     query = {"_id": user_id}
     return collection.find_one(query)['name']
 
 
 client.loop.create_task(cat_status())
-# privated the bot key
-client.run(os.environ['DISCORD_TOKEN'])
+
+client.run(cons.DISCORD_TOKEN)
