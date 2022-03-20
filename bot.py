@@ -9,14 +9,12 @@ from discord.utils import get
 from pymongo import MongoClient
 import asyncio
 import random
-from dotenv import load_dotenv
 import requests
 import constants as cons
 
 intents = discord.Intents(members=True, messages=True, guilds=True)
 client = commands.Bot(command_prefix='~', intents=intents)
 
-load_dotenv()
 cluster = MongoClient(cons.MONGODB_TOKEN, ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
 db = cluster["UserData"]
 collection = db["UserData"]
@@ -83,9 +81,11 @@ async def on_message(ctx):
         happiness = change_happiness(-1, ctx.author.id)
         cat_name = get_cat_name(ctx.author.id)
         if happiness == 0:
-            await ctx.channel.send(f'**{cat_name}**: {ctx.author.mention} i am so lonely no one cares about me')
+            lonely = random.choice(cons.LONELY)
+            await ctx.channel.send(f'**{cat_name}**: {ctx.author.mention} ' + lonely)
         if hunger == 0:
-            await ctx.channel.send(f'**{cat_name}**: {ctx.author.mention} i am going to die please feed me some food')
+            hungry = random.choice(cons.HUNGRY)
+            await ctx.channel.send(f'**{cat_name}**: {ctx.author.mention} ' + hungry)
     await client.process_commands(ctx)
 
 
