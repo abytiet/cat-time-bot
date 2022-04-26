@@ -321,7 +321,7 @@ async def commands(ctx):
                    '‣ ~feed    → feed me → +20 hunger \n'
                    '‣ ~play    → play time → +20 happiness -20 hunger\n'
                    '‣ ~scold   → yell at me → -20 happiness\n'
-                   '‣ ~fact   → get a random cat fact'
+                   '‣ ~fact    → get a random cat fact\n'
                    '‣ ~abandon → leave me. for good. :(\n'
                    '‣ ~cps     → summon cat protection services\n'
                    '‣ ~rehome [mentioned user] → CPS role only! include mention of a user to rehome their cat```')
